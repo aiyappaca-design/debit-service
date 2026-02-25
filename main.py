@@ -1,27 +1,60 @@
-from fastapi import FastAPI
-import requests
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import httpx
+import os
 
 app = FastAPI()
 
-CARD_SERVICE_URL = "https://card-store-8uzi.onrender.com"
+CARD_SERVICE_URL = os.getenv("CARD_SERVICE_URL")
+
+
+class StatusUpdate(BaseModel):
+    status: str
+
+
+class LimitUpdate(BaseModel):
+    transaction_limit: float
+
+
+@app.get("/")
+def root():
+    return {"message": "Debit Service Running"}
+
 
 @app.get("/debit/{card_id}/status")
-def get_status(card_id: str):
-    response = requests.get(f"{CARD_SERVICE_URL}/cards/{card_id}")
-    return {"status": response.json()["status"]}
+async def get_status(card_id: str):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{CARD_SERVICE_URL}/cards/{card_id}")
+
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Card service error")
+
+        return {"status": response.json()["status"]}
+
 
 @app.patch("/debit/{card_id}/status")
-def update_status(card_id: str, body: dict):
-    response = requests.put(
-        f"{CARD_SERVICE_URL}/cards/{card_id}",
-        json={"status": body["status"]}
-    )
-    return {"message": "Status updated"}
+async def update_status(card_id: str, body: StatusUpdate):
+    async with httpx.AsyncClient() as client:
+        response = await client.put(
+            f"{CARD_SERVICE_URL}/cards/{card_id}",
+            json={"status": body.status}
+        )
+
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Update failed")
+
+        return {"message": "Status updated"}
+
 
 @app.patch("/debit/{card_id}/limits")
-def update_limits(card_id: str, body: dict):
-    response = requests.put(
-        f"{CARD_SERVICE_URL}/cards/{card_id}",
-        json=body
-    )
-    return {"message": "Limits updated"}
+async def update_limits(card_id: str, body: LimitUpdate):
+    async with httpx.AsyncClient() as client:
+        response = await client.put(
+            f"{CARD_SERVICE_URL}/cards/{card_id}",
+            json={"transaction_limit": body.transaction_limit}
+        )
+
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Limit update failed")
+
+        return {"message": "Limits updated"}
