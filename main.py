@@ -3,7 +3,7 @@ import requests
 
 app = FastAPI()
 
-CARD_SERVICE_URL = "https://your-card-store.onrender.com"
+CARD_SERVICE_URL = "https://card-store-8uzi.onrender.com"
 
 @app.get("/debit/{card_id}/status")
 def get_status(card_id: str):
