@@ -24,7 +24,11 @@ def root():
 
 @app.get("/debit/{card_id}/status")
 async def get_status(card_id: str, user=Depends(verify_token)):
-    async with httpx.AsyncClient() as client:
+ async with httpx.AsyncClient() as client:
+        try:
+            headers = {
+                "Authorization": request.headers.get("Authorization")
+            }
         response = await client.get(f"{CARD_SERVICE_URL}/cards/{card_id}")
 
         if response.status_code != 200:
