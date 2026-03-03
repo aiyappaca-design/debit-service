@@ -29,14 +29,14 @@ async def get_status(card_id: str, user=Depends(verify_token)):
             headers = {
                 "Authorization": request.headers.get("Authorization")
             }
-        response = await client.get(url=f"{CARD_SERVICE_URL}/cards/{card_id}",
+        response = await client.get(f"{CARD_SERVICE_URL}/cards/{card_id}",
                 headers=headers,   # ✅ Propagate Token
             )
 
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail="Card service error")
-
         return {"status": response.json()["status"]}
+
+        except httpx.RequestError:
+            raise HTTPException(status_code=response.status_code, detail="Card service error")
 
 
 @app.patch("/debit/{card_id}/status")
