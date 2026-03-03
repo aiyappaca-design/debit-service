@@ -17,3 +17,5 @@ typing_extensions==4.15.0
 uvicorn==0.41.0
 requests
 httpx
+python-jose[cryptography]
+passlib[bcrypt]

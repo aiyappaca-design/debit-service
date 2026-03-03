@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import httpx
 import os
+from auth import verify_token
 
 app = FastAPI()
 
@@ -22,7 +23,7 @@ def root():
 
 
 @app.get("/debit/{card_id}/status")
-async def get_status(card_id: str):
+async def get_status(card_id: str, user=Depends(verify_token)):
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{CARD_SERVICE_URL}/cards/{card_id}")
 
@@ -33,7 +34,7 @@ async def get_status(card_id: str):
 
 
 @app.patch("/debit/{card_id}/status")
-async def update_status(card_id: str, body: StatusUpdate):
+async def update_status(card_id: str, body: StatusUpdate, user=Depends(verify_token)):
     async with httpx.AsyncClient() as client:
         response = await client.put(
             f"{CARD_SERVICE_URL}/cards/{card_id}",
@@ -47,7 +48,7 @@ async def update_status(card_id: str, body: StatusUpdate):
 
 
 @app.patch("/debit/{card_id}/limits")
-async def update_limits(card_id: str, body: LimitUpdate):
+async def update_limits(card_id: str, body: LimitUpdate, user=Depends(verify_token)):
     async with httpx.AsyncClient() as client:
         response = await client.put(
             f"{CARD_SERVICE_URL}/cards/{card_id}",
